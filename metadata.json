@@ -1,0 +1,7 @@
+{
+  "name": "LUNE - AI Ring Sizing",
+  "description": "LUNE is the AI-powered ring sizing companion that eliminates guesswork from online jewelry purchases through intelligent image analysis. This MVP focuses on the credit card calibration method.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

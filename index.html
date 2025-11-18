@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LUNE - Your Perfect Fit, Captured in Light</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <style>
+      .custom-cursor-region {
+        cursor: none;
+      }
+      #cursor-dot {
+        pointer-events: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 8px;
+        height: 8px;
+        background-color: #C9A668;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: width 0.2s, height 0.2s;
+        z-index: 9999;
+        display: none;
+      }
+      #cursor-outline {
+        pointer-events: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 40px;
+        height: 40px;
+        border: 1px solid rgba(201, 166, 104, 0.5);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: top 0.1s ease-out, left 0.1s ease-out, transform 0.2s, width 0.3s, height 0.3s, border-color 0.3s, background-color 0.3s;
+        z-index: 9999;
+        display: none;
+      }
+      .custom-cursor-region #cursor-dot,
+      .custom-cursor-region #cursor-outline {
+        display: block;
+      }
+      .custom-cursor-region.cursor-pointer #cursor-dot {
+        width: 4px;
+        height: 4px;
+      }
+      .custom-cursor-region.cursor-pointer #cursor-outline {
+        width: 30px;
+        height: 30px;
+        background-color: rgba(201, 166, 104, 0.2);
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              midnight: {
+                50: '#E8E8EA',
+                100: '#D1D1D5',
+                200: '#A3A3AA',
+                300: '#75757F',
+                400: '#474755',
+                500: '#2B2B35',
+                600: '#1F1F28',
+                700: '#16161D',
+                800: '#0D0D12',
+                900: '#060608',
+              },
+              silver: {
+                50: '#FAFAFA',
+                100: '#F5F5F6',
+                200: '#E8E8EA',
+                300: '#D1D1D5',
+                400: '#B8B8BE',
+                500: '#9F9FA8',
+                600: '#878791',
+                700: '#6E6E7A',
+                800: '#565663',
+                900: '#3D3D4C',
+              },
+              platinum: {
+                50: '#FAFBFC',
+                100: '#F2F4F7',
+                200: '#E4E7EC',
+                300: '#C8CDD5',
+                400: '#9DA4AE',
+                500: '#717784',
+                600: '#565D6D',
+              },
+              bronze: {
+                400: '#C9A668',
+                500: '#B08D4F',
+              },
+              success: '#6DD4A8',
+              warning: '#F5C563',
+              error: '#EF8B8B',
+              info: '#7BA3E8',
+            },
+            fontFamily: {
+              display: ['Cormorant Garamond', 'serif'],
+              sans: ['Inter', 'system-ui', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            fontSize: {
+              'display-2xl': ['72px', { lineHeight: '80px', letterSpacing: '-0.03em' }],
+              'display-xl': ['60px', { lineHeight: '68px', letterSpacing: '-0.02em' }],
+              'display-lg': ['48px', { lineHeight: '56px', letterSpacing: '-0.015em' }],
+              'display-md': ['40px', { lineHeight: '48px', letterSpacing: '-0.01em' }],
+              'display-sm': ['32px', { lineHeight: '40px', letterSpacing: '-0.01em' }],
+            },
+            spacing: {
+              'section-sm': '80px',
+              'section': '120px',
+              'section-lg': '160px',
+              'section-xl': '200px',
+              'card': '32px',
+              'card-lg': '48px',
+              'section-x': '80px',
+              'section-x-mobile': '24px',
+            },
+            maxWidth: {
+              'container': '1440px',
+              'container-narrow': '1200px',
+              'container-text': '800px',
+            },
+            animation: {
+              'fadeIn': 'fadeIn 0.5s ease-out forwards',
+              'fadeOut': 'fadeOut 0.3s ease-out forwards',
+              'fadeInUp': 'fadeInUp 0.8s ease-out forwards',
+              'shimmer': 'shimmer 2s linear infinite',
+              'float': 'float 3s ease-in-out infinite',
+              'glow': 'glow 2s ease-in-out infinite',
+              'glow-bronze': 'glow-bronze 2s ease-in-out infinite',
+            },
+            keyframes: {
+              fadeIn: {
+                'from': { opacity: '0' },
+                'to': { opacity: '1' },
+              },
+              fadeOut: {
+                'from': { opacity: '0.8' },
+                'to': { opacity: '0' },
+              },
+              fadeInUp: {
+                'from': { opacity: '0', transform: 'translateY(32px)' },
+                'to': { opacity: '1', transform: 'translateY(0)' },
+              },
+              shimmer: {
+                '100%': { transform: 'translateX(100%)' },
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-20px)' },
+              },
+              glow: {
+                '0%, 100%': { 
+                  opacity: '0.3', 
+                  boxShadow: '0 0 20px rgba(200,205,213,0.2)' 
+                },
+                '50%': { 
+                  opacity: '0.6', 
+                  boxShadow: '0 0 40px rgba(200,205,213,0.4)' 
+                },
+              },
+              'glow-bronze': {
+                '0%, 100%': { 
+                  boxShadow: '0 0 15px rgba(201, 166, 104, 0.4)',
+                  borderColor: 'rgba(201, 166, 104, 0.7)'
+                },
+                '50%': { 
+                  boxShadow: '0 0 30px rgba(201, 166, 104, 0.7)',
+                  borderColor: 'rgba(201, 166, 104, 1)'
+                },
+              },
+            },
+            backgroundImage: {
+              'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+            },
+            backdropBlur: {
+              xs: '2px',
+            },
+          }
+        }
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@18.2.0/",
+    "react/": "https://esm.sh/react@18.2.0/",
+    "react": "https://esm.sh/react@18.2.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-midnight-600">
+    <div id="cursor-dot"></div>
+    <div id="cursor-outline"></div>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
