@@ -1,7 +1,8 @@
 {
   "name": "lune---ai-ring-sizing",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "AI ring sizing and AR try-on with glass-morphism UI (React + Vite)",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,6 +10,12 @@
     "preview": "vite preview",
     "test": "vitest run"
   },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JeswinJestin/lune---ai-ring-sizing.git"
+  },
+  "homepage": "https://github.com/JeswinJestin/lune---ai-ring-sizing",
   "dependencies": {
     "react": "18.2.0",
     "react-dom": "18.2.0"
