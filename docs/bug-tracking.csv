@@ -1,0 +1,5 @@
+id,title,status,severity,area,repro_steps,expected,actual
+AR-001,Ring appears too small,Fixed,medium,AR,"Start AR, select ring 1",Ring scales to realistic size,Ring size smaller than expected
+AR-002,Overlay jitter when hand moves,Fixed,high,AR,"Start AR, move hand slowly",Smooth tracking with minimal jitter,Overlay jitters and drifts
+AR-003,Gem misaligned on some rings,Fixed,high,Assets,"Select rings 2–4",Gem aligns with band center,Gem offset relative to band
+NAV-001,Footer AR Try-On not accessible,N/A,low,Navigation,"Click AR Try-On in Footer",Navigate to AR when result exists,Shows alert gating instead of navigation

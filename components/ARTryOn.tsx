@@ -6,6 +6,7 @@ import type { MeasurementResult, Landmark } from '../types';
 import { computeAutoAdjustments } from '../lib/arAutoAdjust';
 import { measureFromAR, stabilizeMeasurements } from '../lib/measurement';
 import { resolveRingUrl, resolveBandUrl, resolveGemUrl, preloadAndChoose } from '../lib/assetsResolver';
+import { alphaBounds, centerOf } from '../lib/imageAnalysis';
 
 const rings = [
   { id: 1, name: 'Solitaire Diamond', image: '/1_RING.png', description: 'A timeless platinum band with a solitaire diamond.' , hasGem: true },
@@ -55,6 +56,7 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
   const handsRef = useRef<any>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
   const screenshotCanvasRef = useRef<HTMLCanvasElement>(null);
+  const compositeCanvasRef = useRef<HTMLCanvasElement>(null);
   const resultRef = useRef(result);
 
   const [selectedRing, setSelectedRing] = useState(rings[0]);
@@ -84,6 +86,10 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
   const [ringImageUrl, setRingImageUrl] = useState<string | null>(null);
   const [bandImageUrl, setBandImageUrl] = useState<string | null>(null);
   const [gemImageUrl, setGemImageUrl] = useState<string | null>(null);
+  const [compositeUrl, setCompositeUrl] = useState<string | null>(null);
+  const smoothPosRef = useRef<{ x: number; y: number } | null>(null);
+  const smoothRotRef = useRef<number>(0);
+  const smoothScaleRef = useRef<number>(0);
 
   // State for swipe-to-dismiss gesture
   const [touchStartY, setTouchStartY] = useState(0);
@@ -102,10 +108,30 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
         // --- Dynamic Scaling Logic ---
         const vw = videoRef.current.clientWidth;
         const vh = videoRef.current.clientHeight;
-        const adj = computeAutoAdjustments({ landmarks, viewport: { width: vw, height: vh }, fingerDiameterMm: resultRef.current.fingerDiameter_mm });
-        setDynamicRingSize(adj.scalePx);
-        setRingPosition(adj.position);
-        setRotation(adj.rotationDeg);
+        const adj = computeAutoAdjustments({ landmarks, viewport: { width: vw, height: vh }, fingerDiameterMm: resultRef.current.fingerDiameter_mm * 1.15 });
+        const alphaPos = 0.22;
+        const alphaRot = 0.18;
+        const alphaScale = 0.15;
+        const prevPos = smoothPosRef.current || adj.position;
+        const smPos = { x: prevPos.x * (1 - alphaPos) + adj.position.x * alphaPos, y: prevPos.y * (1 - alphaPos) + adj.position.y * alphaPos };
+        const smRot = smoothRotRef.current * (1 - alphaRot) + adj.rotationDeg * alphaRot;
+        const smScale = smoothScaleRef.current * (1 - alphaScale) + adj.scalePx * alphaScale;
+        const dx = Math.abs(smPos.x - (smoothPosRef.current?.x ?? smPos.x));
+        const dy = Math.abs(smPos.y - (smoothPosRef.current?.y ?? smPos.y));
+        const dtheta = Math.abs(smRot - (smoothRotRef.current ?? smRot));
+        const dscale = Math.abs(smScale - (smoothScaleRef.current ?? smScale));
+        const posDeadzone = 1.5;
+        const rotDeadzone = 0.8;
+        const scaleDeadzone = 0.8;
+        const nextPos = (dx > posDeadzone || dy > posDeadzone) ? smPos : (smoothPosRef.current || smPos);
+        const nextRot = dtheta > rotDeadzone ? smRot : (smoothRotRef.current || smRot);
+        const nextScale = dscale > scaleDeadzone ? smScale : (smoothScaleRef.current || smScale);
+        smoothPosRef.current = nextPos;
+        smoothRotRef.current = nextRot;
+        smoothScaleRef.current = nextScale;
+        setDynamicRingSize(nextScale);
+        setRingPosition(nextPos);
+        setRotation(nextRot);
         setZoom(1);
 
         const m = measureFromAR(landmarks, { width: vw, height: vh });
@@ -286,6 +312,89 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
   const baseRingSize = dynamicRingSize ?? fallbackRingSize;
   const finalRingSize = baseRingSize * zoom;
 
+  const layerConfig: Record<number, { band: { offsetX: number; offsetY: number; scale: number }; gem: { offsetX: number; offsetY: number; scale: number } }> = {
+    1: { band: { offsetX: 0, offsetY: 0, scale: 1 }, gem: { offsetX: 0, offsetY: 0, scale: 1 } },
+    2: { band: { offsetX: 0, offsetY: 0, scale: 1 }, gem: { offsetX: 0, offsetY: -6, scale: 1 } },
+    3: { band: { offsetX: 0, offsetY: 0, scale: 1 }, gem: { offsetX: 0, offsetY: -4, scale: 1 } },
+    4: { band: { offsetX: 0, offsetY: 0, scale: 1 }, gem: { offsetX: 2, offsetY: 0, scale: 1 } },
+    5: { band: { offsetX: 0, offsetY: 0, scale: 1 }, gem: { offsetX: 0, offsetY: 0, scale: 1 } },
+    6: { band: { offsetX: 0, offsetY: 0, scale: 1 }, gem: { offsetX: -2, offsetY: 0, scale: 1 } },
+    7: { band: { offsetX: 0, offsetY: 0, scale: 1 }, gem: { offsetX: 0, offsetY: 0, scale: 1 } },
+    8: { band: { offsetX: 0, offsetY: 0, scale: 1 }, gem: { offsetX: 0, offsetY: 0, scale: 1 } },
+    9: { band: { offsetX: 0, offsetY: 0, scale: 1 }, gem: { offsetX: 0, offsetY: 0, scale: 1 } },
+  };
+
+  useEffect(() => {
+    const bandSrc = hasBandLayer && bandImageUrl ? bandImageUrl : null;
+    const gemSrc = hasGemLayer && gemImageUrl && selectedRing.hasGem ? gemImageUrl : null;
+    if (!bandSrc && !gemSrc) {
+      setCompositeUrl(null);
+      return;
+    }
+    const canvas = compositeCanvasRef.current || document.createElement('canvas');
+    compositeCanvasRef.current = canvas;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const targetSize = 1024;
+    canvas.width = targetSize;
+    canvas.height = targetSize;
+    ctx.clearRect(0, 0, targetSize, targetSize);
+    const bandImg = bandSrc ? new Image() : null;
+    const gemImg = gemSrc ? new Image() : null;
+    const cfg = layerConfig[selectedRing.id];
+    let loaded = 0;
+    const tryCommit = () => {
+      const need = (bandSrc ? 1 : 0) + (gemSrc ? 1 : 0);
+      if (loaded === need) {
+        ctx.imageSmoothingEnabled = true;
+        let bandDraw = cfg.band;
+        let gemDraw = cfg.gem;
+        if (bandImg) {
+          const bb = alphaBounds(bandImg, targetSize);
+          if (bb) {
+            const bc = centerOf(bb);
+            bandDraw = { offsetX: Math.round(targetSize / 2 - bc.cx), offsetY: Math.round(targetSize / 2 - bc.cy), scale: 1 };
+          }
+        }
+        if (gemImg && selectedRing.id !== 5) {
+          const gb = alphaBounds(gemImg, targetSize);
+          if (gb) {
+            const gc = centerOf(gb);
+            gemDraw = { offsetX: Math.round(targetSize / 2 - gc.cx), offsetY: Math.round(targetSize / 2 - gc.cy - 4), scale: 1 };
+          }
+        }
+        if (bandImg) {
+          const bw = targetSize * bandDraw.scale;
+          const bh = targetSize * bandDraw.scale;
+          const bx = (targetSize - bw) / 2 + bandDraw.offsetX;
+          const by = (targetSize - bh) / 2 + bandDraw.offsetY;
+          ctx.globalAlpha = 1;
+          ctx.drawImage(bandImg, bx, by, bw, bh);
+        }
+        if (gemImg && selectedRing.id !== 5) {
+          const gw = targetSize * gemDraw.scale;
+          const gh = targetSize * gemDraw.scale;
+          const gx = (targetSize - gw) / 2 + gemDraw.offsetX;
+          const gy = (targetSize - gh) / 2 + gemDraw.offsetY;
+          ctx.globalAlpha = 0.98;
+          ctx.drawImage(gemImg, gx, gy, gw, gh);
+        }
+        setCompositeUrl(canvas.toDataURL('image/png'));
+      }
+    };
+    if (bandImg && bandSrc) {
+      bandImg.crossOrigin = 'anonymous';
+      bandImg.onload = () => { loaded += 1; tryCommit(); };
+      bandImg.src = bandSrc;
+    }
+    if (gemImg && gemSrc) {
+      gemImg.crossOrigin = 'anonymous';
+      gemImg.onload = () => { loaded += 1; tryCommit(); };
+      gemImg.src = gemSrc;
+    }
+    if (!bandImg && !gemImg) setCompositeUrl(null);
+  }, [bandImageUrl, gemImageUrl, hasBandLayer, hasGemLayer, selectedRing]);
+
   const handleScreenshot = () => {
     if (!videoRef.current || !screenshotCanvasRef.current || !selectedRing || !ringPosition) {
       alert("Please ensure your hand is visible to take a screenshot.");
@@ -307,7 +416,7 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
 
     const ringImage = new Image();
     ringImage.crossOrigin = 'anonymous';
-    ringImage.src = ringImageUrl || selectedRing.image;
+    ringImage.src = compositeUrl || ringImageUrl || selectedRing.image;
 
     ringImage.onload = () => {
       const finalX = ringPosition.x + positionOffset.x;
@@ -395,9 +504,9 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
       </div>
 
       {!isHandDetected && (
-         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/60 p-6 rounded-2xl text-white text-center pointer-events-none z-10 backdrop-blur-lg border border-white/10">
+         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/10 p-6 rounded-2xl text-white text-center pointer-events-none z-10 backdrop-blur-2xl border border-white/20 shadow-2xl">
             <p className="font-semibold text-lg">Show your hand to the camera</p>
-            <p className="text-sm opacity-80 mt-1">We'll scale and place the ring automatically!</p>
+            <p className="text-sm opacity-80 mt-1">We will auto-fit and align your ring.</p>
          </div>
       )}
       
@@ -412,14 +521,7 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
             transform: `translate(-50%, -50%) rotate(${rotation}deg) scale(${zoom})`
           }}
         >
-            {hasBandLayer && bandImageUrl ? (
-              <img src={bandImageUrl} alt={`${selectedRing.name} band`} className="absolute inset-0 w-full h-full object-contain drop-shadow-2xl" />
-            ) : (
-              <img src={ringImageUrl || selectedRing.image} alt={`${selectedRing.name}`} className="absolute inset-0 w-full h-full object-contain drop-shadow-2xl" />
-            )}
-            {hasGemLayer && gemImageUrl && (
-              <img src={gemImageUrl} alt={`${selectedRing.name} gem`} className="absolute inset-0 w-full h-full object-contain drop-shadow-2xl" />
-            )}
+            <img src={compositeUrl || ringImageUrl || selectedRing.image} alt={`${selectedRing.name}`} className="absolute inset-0 w-full h-full object-contain drop-shadow-2xl" />
         </div>
       )}
       
@@ -469,8 +571,8 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
                     <div className="flex items-center gap-2">
                         <input
                             type="range"
-                            min="0.75"
-                            max="1.25"
+                            min="0.60"
+                            max="1.60"
                             step="0.01"
                             value={zoom}
                             onChange={(e) => setZoom(parseFloat(e.target.value))}
