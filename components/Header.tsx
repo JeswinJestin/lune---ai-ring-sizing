@@ -24,8 +24,7 @@ export const Header = ({ onNavigate, variant = 'transparent' }: HeaderProps) => 
     };
   }, []);
   
-  const isTransparent = variant === 'transparent';
-  const headerClasses = `fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isTransparent && !isScrolled ? 'bg-transparent border-b border-transparent' : 'bg-midnight-600/60 backdrop-blur-xl shadow-lg border-b border-platinum-300/10'}`;
+  const headerClasses = `fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-midnight-600/60 backdrop-blur-xl shadow-lg border-b border-platinum-300/10`;
 
   const navItems: { label: string, page: AppState }[] = [
       { label: 'Home', page: 'landing' },

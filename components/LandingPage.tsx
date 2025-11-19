@@ -11,16 +11,14 @@ interface LandingPageProps {
 
 export const LandingPage = ({ onGetStarted }: LandingPageProps) => {
   return (
-    <div className="w-full bg-midnight-700">
+    <div className="w-full bg-gradient-to-br from-midnight-800/60 via-midnight-900/70 to-black/80">
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center text-center overflow-hidden px-4">
-        <div 
-          className="absolute inset-0 animate-[fadeIn_1.5s_ease-in-out] bg-gradient-to-br from-midnight-700 to-midnight-900"
-        ></div>
-        <div className="absolute inset-0 bg-midnight-800/50 z-10"></div>
+        <div className="absolute inset-0 animate-[fadeIn_1.5s_ease-in-out] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-midnight-700/50 via-midnight-900/70 to-black/80"></div>
+        <div className="absolute inset-0 bg-white/5 backdrop-blur-2xl z-10"></div>
         
         <div className="relative z-20 flex flex-col items-center animate-[fadeInUp_0.8s_ease-out]">
-            <div className="bg-black/20 backdrop-blur-lg border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl">
+            <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl p-8 md:p-12 shadow-2xl">
                 <h1 className="font-display text-display-lg md:text-display-2xl font-light text-silver-100 max-w-4xl">
                     Find Your Perfect <span className="italic">Ring Size</span> in Seconds
                 </h1>
@@ -37,8 +35,9 @@ export const LandingPage = ({ onGetStarted }: LandingPageProps) => {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-section-lg bg-midnight-600">
+      <section className="py-section-lg">
         <div className="max-w-container-narrow mx-auto px-section-x-mobile md:px-section-x text-center">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-10">
           <h2 className="font-display text-display-md text-silver-100 mb-4">Simplicity in Three Steps</h2>
           <p className="text-lg text-silver-400 max-w-2xl mx-auto mb-16">
             Getting your perfect ring size has never been easier.
@@ -59,6 +58,7 @@ export const LandingPage = ({ onGetStarted }: LandingPageProps) => {
               <h3 className="text-xl font-semibold text-silver-200 mb-2">3. Discover</h3>
               <p className="text-silver-400">Receive your accurate size and start shopping for rings with total confidence.</p>
             </div>
+          </div>
           </div>
         </div>
       </section>
@@ -93,20 +93,22 @@ export const LandingPage = ({ onGetStarted }: LandingPageProps) => {
       </section>
 
       {/* Testimonial Section */}
-      <section className="py-section-lg bg-midnight-600">
+      <section className="py-section-lg">
           <div className="max-w-container-text mx-auto px-section-x-mobile md:px-section-x text-center">
+              <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-10">
               <img src="https://i.pravatar.cc/100?u=a042581f4e29026704d" alt="Happy customer" className="w-24 h-24 rounded-full mx-auto mb-6 border-4 border-midnight-400"/>
               <p className="font-display text-3xl text-silver-200 leading-snug">
                   "I was so hesitant to buy my engagement ring online, but LUNE made it foolproof. The sizing was dead-on accurate, and the AR try-on was a game-changer. So much better than printing a piece of paper!"
               </p>
               <p className="mt-6 font-semibold text-silver-300 tracking-wider">- Jessica L.</p>
+              </div>
           </div>
       </section>
 
       {/* CTA Section */}
       <section className="py-section-xl">
         <div className="max-w-container-narrow mx-auto px-section-x-mobile md:px-section-x text-center">
-          <div className="bg-gradient-to-br from-midnight-500 to-midnight-700/50 border border-platinum-300/10 rounded-3xl py-16 px-8">
+          <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl py-16 px-8 shadow-2xl">
               <h2 className="font-display text-4xl md:text-display-md text-silver-100 mb-4">Find Your Perfect Fit Today</h2>
               <p className="text-silver-400 max-w-xl mx-auto mb-8">The most accurate, easy-to-use ring sizer is just a click away. Get started now—it's free!</p>
               <Button onClick={onGetStarted} className="px-8 py-4 text-lg">
