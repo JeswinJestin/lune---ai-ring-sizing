@@ -145,11 +145,12 @@ export const PhotoUploadSizer = ({ onBack, onComplete }: PhotoUploadSizerProps) 
 
             <div className="relative z-10 container mx-auto px-4 md:px-6 py-8 md:py-12 flex-grow flex flex-col max-w-4xl">
                 {/* Header */}
-                <div className="flex items-center gap-4 mb-8 relative z-30">
+                <div className="flex items-center gap-4 mb-8 relative z-50">
                     <button
                         onClick={onBack}
-                        className="flex items-center justify-center w-12 h-12 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 group"
+                        className="flex items-center justify-center w-12 h-12 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 group pointer-events-auto cursor-pointer"
                         aria-label="Go back"
+                        type="button"
                     >
                         <ArrowLeftIcon className="h-5 w-5 text-silver-300 group-hover:text-white group-hover:-translate-x-0.5 transition-all" />
                     </button>
