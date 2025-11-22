@@ -574,6 +574,37 @@ export const Camera = ({ onCapture, onBack, onCancel, method, isProcessing, proc
                             </span>
                         </div>
                     </div>
+
+                    {/* Live Measurement Display */}
+                    {liveAnalysis && isHandDetected && (
+                        <div className="absolute top-40 left-1/2 -translate-x-1/2 pointer-events-none z-20">
+                            <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-2xl p-4 min-w-[280px]">
+                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                    <div className="flex flex-col">
+                                        <span className="text-silver-400 text-xs mb-1">Finger Width</span>
+                                        <span className="text-white font-bold text-lg">{liveAnalysis.fingerWidth.toFixed(1)}px</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-silver-400 text-xs mb-1">Hand Size</span>
+                                        <span className="text-bronze-400 font-bold text-lg uppercase">{liveAnalysis.handSize}</span>
+                                    </div>
+                                    <div className="col-span-2 flex flex-col">
+                                        <span className="text-silver-400 text-xs mb-1">Confidence</span>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                                                <div
+                                                    className={`h-full transition-all duration-300 ${liveAnalysis.confidence > 80 ? 'bg-emerald-400' : liveAnalysis.confidence > 60 ? 'bg-yellow-400' : 'bg-red-400'}`}
+                                                    style={{ width: `${liveAnalysis.confidence}%` }}
+                                                ></div>
+                                            </div>
+                                            <span className="text-white font-bold text-sm">{liveAnalysis.confidence}%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
                         <div className={`w-2/5 aspect-square border-2 rounded-3xl transition-all duration-500 ${isHandDetected ? 'border-bronze-400/0 scale-105' : 'border-white/30 border-dashed'}`}></div>
                     </div>
