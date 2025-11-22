@@ -120,7 +120,7 @@ export const RulerCalibration = ({ onCalibrate, onBack }: RulerCalibrationProps)
                                         onChange={(e) => setSliderValue(parseFloat(e.target.value))}
                                         className="w-full h-3 bg-white/10 rounded-lg appearance-none cursor-pointer slider"
                                         style={{
-                                            background: `linear-gradient(to right, #D4A574 0%, #D4A574 ${sliderValue}%, rgba(255,255,255,0.1) ${sliderValue}%, rgba(255,255,255,0.1) 100%)`
+                                            background: `linear-gradient(to right, #D4A574 0%, #D4A574 ${((sliderValue - 20) / (90 - 20)) * 100}%, rgba(255,255,255,0.1) ${((sliderValue - 20) / (90 - 20)) * 100}%, rgba(255,255,255,0.1) 100%)`
                                         }}
                                     />
                                 </div>
@@ -133,8 +133,8 @@ export const RulerCalibration = ({ onCalibrate, onBack }: RulerCalibrationProps)
                                     <button
                                         onClick={() => setCalibrationLengthMm(50)}
                                         className={`px-4 py-3 rounded-xl border-2 transition-all duration-300 ${calibrationLengthMm === 50
-                                                ? 'bg-bronze-400 border-bronze-400 text-white shadow-lg shadow-bronze-400/30'
-                                                : 'bg-white/5 border-white/10 text-silver-300 hover:bg-white/10 hover:border-white/20'
+                                            ? 'bg-bronze-400 border-bronze-400 text-white shadow-lg shadow-bronze-400/30'
+                                            : 'bg-white/5 border-white/10 text-silver-300 hover:bg-white/10 hover:border-white/20'
                                             }`}
                                     >
                                         <div className="font-bold text-lg">50mm</div>
@@ -143,8 +143,8 @@ export const RulerCalibration = ({ onCalibrate, onBack }: RulerCalibrationProps)
                                     <button
                                         onClick={() => setCalibrationLengthMm(85.6)}
                                         className={`px-4 py-3 rounded-xl border-2 transition-all duration-300 ${calibrationLengthMm === 85.6
-                                                ? 'bg-bronze-400 border-bronze-400 text-white shadow-lg shadow-bronze-400/30'
-                                                : 'bg-white/5 border-white/10 text-silver-300 hover:bg-white/10 hover:border-white/20'
+                                            ? 'bg-bronze-400 border-bronze-400 text-white shadow-lg shadow-bronze-400/30'
+                                            : 'bg-white/5 border-white/10 text-silver-300 hover:bg-white/10 hover:border-white/20'
                                             }`}
                                     >
                                         <div className="font-bold text-lg">85.6mm</div>
@@ -153,8 +153,8 @@ export const RulerCalibration = ({ onCalibrate, onBack }: RulerCalibrationProps)
                                     <button
                                         onClick={() => setCalibrationLengthMm(100)}
                                         className={`px-4 py-3 rounded-xl border-2 transition-all duration-300 ${calibrationLengthMm === 100
-                                                ? 'bg-bronze-400 border-bronze-400 text-white shadow-lg shadow-bronze-400/30'
-                                                : 'bg-white/5 border-white/10 text-silver-300 hover:bg-white/10 hover:border-white/20'
+                                            ? 'bg-bronze-400 border-bronze-400 text-white shadow-lg shadow-bronze-400/30'
+                                            : 'bg-white/5 border-white/10 text-silver-300 hover:bg-white/10 hover:border-white/20'
                                             }`}
                                     >
                                         <div className="font-bold text-lg">100mm</div>
