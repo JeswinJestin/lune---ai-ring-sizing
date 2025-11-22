@@ -74,7 +74,8 @@ const getBackState = (currentState: AppState): AppState | null => {
     case 'existing-ring':
     case 'page-printable-sizer':
     case 'printable-sizer':
-    case 'manual-entry': return 'method-selection';
+    case 'manual-entry':
+    case 'photo-upload': return 'method-selection';
     case 'multi-finger-sizing': return 'results';
     case 'results': return 'method-selection';
     case 'ar-try-on': return 'results';

@@ -560,6 +560,19 @@ export const Camera = ({ onCapture, onBack, onCancel, method, isProcessing, proc
             return (
                 <>
                     <canvas ref={overlayCanvasRef} className="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" />
+
+                    {/* MediaPipe Status Indicator */}
+                    <div className="absolute top-4 right-4 pointer-events-none z-20">
+                        <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-lg px-3 py-2">
+                            <div className="flex items-center gap-2 text-xs">
+                                <span className={`w-2 h-2 rounded-full ${typeof window !== 'undefined' && window.Hands ? 'bg-green-400' : 'bg-red-400'}`}></span>
+                                <span className="text-white">
+                                    {typeof window !== 'undefined' && window.Hands ? 'MediaPipe Ready' : 'MediaPipe Loading...'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="absolute top-24 left-1/2 -translate-x-1/2 w-auto pointer-events-none z-20">
                         <div className={`px-6 py-2 rounded-full backdrop-blur-md border transition-all duration-300 ${isHandDetected ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-100' : 'bg-black/40 border-white/10 text-white/80'}`}>
                             <span className="flex items-center gap-2 text-sm font-medium">
