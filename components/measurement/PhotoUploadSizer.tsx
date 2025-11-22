@@ -145,7 +145,7 @@ export const PhotoUploadSizer = ({ onBack, onComplete }: PhotoUploadSizerProps) 
 
             <div className="relative z-10 container mx-auto px-4 md:px-6 py-8 md:py-12 flex-grow flex flex-col max-w-4xl">
                 {/* Header */}
-                <div className="flex items-center gap-4 mb-8 relative z-20">
+                <div className="flex items-center gap-4 mb-8 relative z-30">
                     <button
                         onClick={onBack}
                         className="flex items-center justify-center w-12 h-12 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 group"
@@ -170,9 +170,11 @@ export const PhotoUploadSizer = ({ onBack, onComplete }: PhotoUploadSizerProps) 
                             <p className="text-silver-400 mb-8 max-w-sm">
                                 Select a clear photo of your hand. Ensure your hand is flat and fingers are slightly spread.
                             </p>
-                            <Button variant="primary" className="pointer-events-none">
-                                Select Photo
-                            </Button>
+                            <div className="flex justify-center w-full">
+                                <Button variant="primary" className="pointer-events-none">
+                                    Select Photo
+                                </Button>
+                            </div>
                             <input
                                 type="file"
                                 ref={fileInputRef}

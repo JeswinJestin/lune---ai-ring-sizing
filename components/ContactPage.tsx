@@ -6,8 +6,8 @@ import { ArrowRightIcon } from './icons/UtilIcons';
 interface ContactPageProps {
 }
 
-// ⚠️ IMPORTANT: Replace this with your Google Apps Script deployment URL
-const GOOGLE_SCRIPT_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+// Get Google Apps Script URL from environment variable (secure - not committed to git)
+const GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SCRIPT_URL || "";
 
 export const ContactPage = (props: ContactPageProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
