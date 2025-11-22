@@ -130,7 +130,7 @@ export const ExistingRingMeasurement = ({ onComplete, onBack }: ExistingRingMeas
 
                 {step === 'measuring' && (
                     <div className="flex-grow flex flex-col">
-                        <div className="flex-grow bg-white rounded-2xl overflow-hidden relative min-h-[500px] flex items-center justify-center">
+                        <div className="flex-grow bg-midnight-800 rounded-2xl overflow-hidden relative min-h-[500px] flex items-center justify-center border border-white/10">
                             <div
                                 className="absolute border-4 border-bronze-400 rounded-full transition-all duration-150 ease-out"
                                 style={{
