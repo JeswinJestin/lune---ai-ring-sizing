@@ -1,6 +1,6 @@
 
 
-export type SizingMethod = 'credit-card' | 'existing-ring' | 'phone-screen' | 'printable' | 'ai-scan';
+export type SizingMethod = 'credit-card' | 'existing-ring' | 'phone-screen' | 'printable' | 'ai-scan' | 'ruler' | 'upload' | 'manual';
 
 export interface RingSize {
   us: number | string;
@@ -10,6 +10,14 @@ export interface RingSize {
   circumference_mm: number;
 }
 
+export type HandGender = 'male' | 'female' | 'child';
+export type HandSize = 'xs' | 's' | 'm' | 'l' | 'xl';
+
+export interface HandProfile {
+  gender: HandGender;
+  size: HandSize;
+}
+
 export interface CalibrationResult {
   fingerDiameter_mm: number;
   fingerCircumference_mm: number;
@@ -17,8 +25,15 @@ export interface CalibrationResult {
   imagePreviewUrl: string;
 }
 
-export interface MeasurementResult extends CalibrationResult {
+export interface MeasurementResult {
   ringSize: RingSize;
+  confidence: number;
+  fingerDiameter_mm: number;
+  fingerCircumference_mm: number;
+  imagePreviewUrl?: string;
+  handProfile?: HandProfile;
+  method?: string; // Added for reference
+  bandWidth?: number; // Band width in mm for manual entry
 }
 
 export type Landmark = {
@@ -29,13 +44,13 @@ export type Landmark = {
 
 // --- New Types for Image Analysis Pipeline ---
 
-export type Contour = Array<{x: number; y: number}>;
+export type Contour = Array<{ x: number; y: number }>;
 
 export interface BoundingBox {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export interface ReferenceObject {
@@ -55,14 +70,14 @@ export interface FingerMeasurement {
 }
 
 export interface AnalysisResult {
-    size: RingSize;
-    confidence: number;
-    method: 'reference_object' | 'no_reference_fallback';
-    debugInfo: {
-        pixelToMmRatio?: number;
-        fingerWidthPx: number;
-        referenceObject?: ReferenceObject['type'];
-    };
+  size: RingSize;
+  confidence: number;
+  method: 'reference_object' | 'no_reference_fallback';
+  debugInfo: {
+    pixelToMmRatio?: number;
+    fingerWidthPx: number;
+    referenceObject?: ReferenceObject['type'];
+  };
 }
 
 export interface CameraGuidance {

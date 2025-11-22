@@ -6,7 +6,7 @@ import { GithubIcon, BehanceIcon, LinkedInIcon } from './icons/SocialIcons';
 import type { AppState } from '../App';
 
 interface FooterProps {
-    onNavigate: (page: AppState) => void;
+  onNavigate: (page: AppState) => void;
 }
 
 export const Footer = ({ onNavigate }: FooterProps) => {
@@ -40,8 +40,8 @@ export const Footer = ({ onNavigate }: FooterProps) => {
           <div>
             <h3 className="font-semibold text-silver-200 tracking-wider mb-4">Legal</h3>
             <ul className="space-y-3">
-              <li><a href="#" className="hover:text-silver-200 transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-silver-200 transition-colors">Terms of Service</a></li>
+              <li><button onClick={() => onNavigate('privacy')} className="hover:text-silver-200 transition-colors">Privacy Policy</button></li>
+              <li><button onClick={() => onNavigate('terms')} className="hover:text-silver-200 transition-colors">Terms of Service</button></li>
             </ul>
           </div>
         </div>

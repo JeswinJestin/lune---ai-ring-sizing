@@ -1,4 +1,5 @@
 # LUNE: AI Ring Sizing & AR Try‑On
+![License](https://img.shields.io/github/license/JeswinJestin/lune---ai-ring-sizing)
 
 An elegant, glass‑morphism React + Vite app for accurate ring sizing and immersive AR try‑on. It measures finger diameter from camera input, converts to ring size, and visualizes rings with layered band/gem overlays.
 

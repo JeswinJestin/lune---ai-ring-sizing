@@ -48,3 +48,81 @@ export function diameterToSize(diameter_mm: number): RingSize | null {
   const circumference = diameter_mm * Math.PI;
   return circumferenceToSize(circumference);
 }
+
+/**
+ * Find ring size by US size number
+ */
+export function findByUSSize(usSize: number): RingSize | null {
+  return RING_SIZE_TABLE.find(size => size.us === usSize) || null;
+}
+
+/**
+ * Find ring size by UK size letter
+ */
+export function findByUKSize(ukSize: string): RingSize | null {
+  return RING_SIZE_TABLE.find(size => size.uk === ukSize.toUpperCase()) || null;
+}
+
+/**
+ * Find ring size by EU size number
+ */
+export function findByEUSize(euSize: number): RingSize | null {
+  return RING_SIZE_TABLE.find(size => size.eu === euSize) || null;
+}
+
+/**
+ * Adjust ring size based on band width
+ * Wider bands typically require a slightly larger size
+ */
+export function adjustSizeForBandWidth(baseUSSize: number, bandWidth: number): number {
+  // Rule of thumb: for every 2mm of width above 2mm, go up 0.25 size
+  if (bandWidth <= 2) return baseUSSize;
+
+  const widthDiff = bandWidth - 2;
+  const sizeAdjustment = (widthDiff / 2) * 0.25;
+
+  return Math.round((baseUSSize + sizeAdjustment) * 2) / 2; // Round to nearest 0.5
+}
+
+/**
+ * Get recommended size adjustment message based on band width
+ */
+export function getBandWidthRecommendation(bandWidth: number): string {
+  if (bandWidth <= 2) {
+    return 'Thin bands (≤2mm) typically fit true to size.';
+  } else if (bandWidth <= 4) {
+    return 'Medium bands may require going up 0.25 size for comfort.';
+  } else if (bandWidth <= 6) {
+    return 'Wide bands often need 0.25-0.5 size larger.';
+  } else {
+    return 'Very wide bands (>6mm) may need 0.5-1 full size larger.';
+  }
+}
+
+/**
+ * Validate if a diameter is within realistic bounds
+ */
+export function validateDiameter(diameter: number): boolean {
+  return diameter >= 14 && diameter <= 23;
+}
+
+/**
+ * Validate if a circumference is within realistic bounds
+ */
+export function validateCircumference(circumference: number): boolean {
+  return circumference >= 44 && circumference <= 72;
+}
+
+/**
+ * Validate if a US size is within realistic bounds
+ */
+export function validateUSSize(size: number): boolean {
+  return size >= 3 && size <= 13;
+}
+
+/**
+ * Validate if an EU size is within realistic bounds
+ */
+export function validateEUSize(size: number): boolean {
+  return size >= 44 && size <= 70;
+}

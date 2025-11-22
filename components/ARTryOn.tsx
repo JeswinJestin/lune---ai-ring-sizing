@@ -7,17 +7,18 @@ import { computeAutoAdjustments } from '../lib/arAutoAdjust';
 import { measureFromAR, stabilizeMeasurements } from '../lib/measurement';
 import { resolveRingUrl, resolveBandUrl, resolveGemUrl, preloadAndChoose } from '../lib/assetsResolver';
 import { alphaBounds, centerOf } from '../lib/imageAnalysis';
+import { ThreeARTryOn } from './ThreeARTryOn';
 
 const rings = [
-  { id: 1, name: 'Solitaire Diamond', image: '/1_RING.png', description: 'A timeless platinum band with a solitaire diamond.' , hasGem: true },
-  { id: 2, name: 'Emerald Cut', image: '/2_RING.png', description: 'Platinum band with emerald-cut halo setting.' , hasGem: true },
-  { id: 3, name: 'Vintage Halo', image: '/3_RING.png', description: 'Engraved vintage band with halo cluster.' , hasGem: true },
-  { id: 4, name: 'Sapphire Band', image: '/4_RING.png', description: 'Polished gold band with alternating sockets.' , hasGem: true },
-  { id: 5, name: 'Classic Gold Band', image: '/5_RING.png', description: 'Plain polished gold band.' , hasGem: false },
-  { id: 6, name: 'Twisted Vine', image: '/6_RING.png', description: 'Twisted vine-style band.' , hasGem: true },
-  { id: 7, name: 'Modern Bezel', image: '/7_RING.png', description: 'Minimal band with bezel opening.' , hasGem: true },
-  { id: 8, name: 'Rose Gold Pearl', image: '/8_RING.png', description: 'Rose-gold band with pearl setting.' , hasGem: true },
-  { id: 9, name: 'Art Deco Emerald', image: '/9_RING.png', description: 'Geometric Art Deco-style band.' , hasGem: true },
+  { id: 1, name: 'Solitaire Diamond', image: '/1_RING.png', description: 'A timeless platinum band with a solitaire diamond.', hasGem: true },
+  { id: 2, name: 'Emerald Cut', image: '/2_RING.png', description: 'Platinum band with emerald-cut halo setting.', hasGem: true },
+  { id: 3, name: 'Vintage Halo', image: '/3_RING.png', description: 'Engraved vintage band with halo cluster.', hasGem: true },
+  { id: 4, name: 'Sapphire Band', image: '/4_RING.png', description: 'Polished gold band with alternating sockets.', hasGem: true },
+  { id: 5, name: 'Classic Gold Band', image: '/5_RING.png', description: 'Plain polished gold band.', hasGem: false },
+  { id: 6, name: 'Twisted Vine', image: '/6_RING.png', description: 'Twisted vine-style band.', hasGem: true },
+  { id: 7, name: 'Modern Bezel', image: '/7_RING.png', description: 'Minimal band with bezel opening.', hasGem: true },
+  { id: 8, name: 'Rose Gold Pearl', image: '/8_RING.png', description: 'Rose-gold band with pearl setting.', hasGem: true },
+  { id: 9, name: 'Art Deco Emerald', image: '/9_RING.png', description: 'Geometric Art Deco-style band.', hasGem: true },
 ];
 
 interface Ring { id: number; name: string; image: string; description: string; hasGem: boolean; }
@@ -35,11 +36,11 @@ type RingSettings = {
 
 // Helper to calculate distance between two 3D landmarks
 const getDistance = (p1: Landmark, p2: Landmark): number => {
-    return Math.sqrt(
-        Math.pow(p1.x - p2.x, 2) +
-        Math.pow(p1.y - p2.y, 2) +
-        Math.pow(p1.z - p2.z, 2)
-    );
+  return Math.sqrt(
+    Math.pow(p1.x - p2.x, 2) +
+    Math.pow(p1.y - p2.y, 2) +
+    Math.pow(p1.z - p2.z, 2)
+  );
 };
 
 declare global {
@@ -69,7 +70,7 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
   const diametersWindow: number[] = [];
   const [error, setError] = useState<string | null>(null);
   const [favoriteRings, setFavoriteRings] = useState<number[]>([]);
-  
+
   // State for dynamic AR positioning and scaling
   const [dynamicRingSize, setDynamicRingSize] = useState<number | null>(null);
   const [ringPosition, setRingPosition] = useState<{ x: number, y: number } | null>(null);
@@ -102,92 +103,96 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
 
   const onResults = useCallback((results: any) => {
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0 && videoRef.current) {
-        setIsHandDetected(true);
-        const landmarks = results.multiHandLandmarks[0];
+      setIsHandDetected(true);
+      const landmarks = results.multiHandLandmarks[0];
+      // Store raw landmarks for 3D component
+      if (handsRef.current) {
+        (handsRef.current as any).lastLandmarks = landmarks;
+      }
 
-        // --- Dynamic Scaling Logic ---
-        const vw = videoRef.current.clientWidth;
-        const vh = videoRef.current.clientHeight;
-        const adj = computeAutoAdjustments({ landmarks, viewport: { width: vw, height: vh }, fingerDiameterMm: resultRef.current.fingerDiameter_mm * 1.15 });
-        const alphaPos = 0.22;
-        const alphaRot = 0.18;
-        const alphaScale = 0.15;
-        const prevPos = smoothPosRef.current || adj.position;
-        const smPos = { x: prevPos.x * (1 - alphaPos) + adj.position.x * alphaPos, y: prevPos.y * (1 - alphaPos) + adj.position.y * alphaPos };
-        const smRot = smoothRotRef.current * (1 - alphaRot) + adj.rotationDeg * alphaRot;
-        const smScale = smoothScaleRef.current * (1 - alphaScale) + adj.scalePx * alphaScale;
-        const dx = Math.abs(smPos.x - (smoothPosRef.current?.x ?? smPos.x));
-        const dy = Math.abs(smPos.y - (smoothPosRef.current?.y ?? smPos.y));
-        const dtheta = Math.abs(smRot - (smoothRotRef.current ?? smRot));
-        const dscale = Math.abs(smScale - (smoothScaleRef.current ?? smScale));
-        const posDeadzone = 1.5;
-        const rotDeadzone = 0.8;
-        const scaleDeadzone = 0.8;
-        const nextPos = (dx > posDeadzone || dy > posDeadzone) ? smPos : (smoothPosRef.current || smPos);
-        const nextRot = dtheta > rotDeadzone ? smRot : (smoothRotRef.current || smRot);
-        const nextScale = dscale > scaleDeadzone ? smScale : (smoothScaleRef.current || smScale);
-        smoothPosRef.current = nextPos;
-        smoothRotRef.current = nextRot;
-        smoothScaleRef.current = nextScale;
-        setDynamicRingSize(nextScale);
-        setRingPosition(nextPos);
-        setRotation(nextRot);
-        setZoom(1);
+      // --- Dynamic Scaling Logic ---
+      const vw = videoRef.current.clientWidth;
+      const vh = videoRef.current.clientHeight;
+      const adj = computeAutoAdjustments({ landmarks, viewport: { width: vw, height: vh }, fingerDiameterMm: resultRef.current.fingerDiameter_mm * 1.15 });
+      const alphaPos = 0.22;
+      const alphaRot = 0.18;
+      const alphaScale = 0.15;
+      const prevPos = smoothPosRef.current || adj.position;
+      const smPos = { x: prevPos.x * (1 - alphaPos) + adj.position.x * alphaPos, y: prevPos.y * (1 - alphaPos) + adj.position.y * alphaPos };
+      const smRot = smoothRotRef.current * (1 - alphaRot) + adj.rotationDeg * alphaRot;
+      const smScale = smoothScaleRef.current * (1 - alphaScale) + adj.scalePx * alphaScale;
+      const dx = Math.abs(smPos.x - (smoothPosRef.current?.x ?? smPos.x));
+      const dy = Math.abs(smPos.y - (smoothPosRef.current?.y ?? smPos.y));
+      const dtheta = Math.abs(smRot - (smoothRotRef.current ?? smRot));
+      const dscale = Math.abs(smScale - (smoothScaleRef.current ?? smScale));
+      const posDeadzone = 1.5;
+      const rotDeadzone = 0.8;
+      const scaleDeadzone = 0.8;
+      const nextPos = (dx > posDeadzone || dy > posDeadzone) ? smPos : (smoothPosRef.current || smPos);
+      const nextRot = dtheta > rotDeadzone ? smRot : (smoothRotRef.current || smRot);
+      const nextScale = dscale > scaleDeadzone ? smScale : (smoothScaleRef.current || smScale);
+      smoothPosRef.current = nextPos;
+      smoothRotRef.current = nextRot;
+      smoothScaleRef.current = nextScale;
+      setDynamicRingSize(nextScale);
+      setRingPosition(nextPos);
+      setRotation(nextRot);
+      setZoom(1);
 
-        const m = measureFromAR(landmarks, { width: vw, height: vh });
-        diametersWindow.push(m.diameterMm);
-        const stabilized = stabilizeMeasurements(diametersWindow, 0.1, 10);
-        setLiveDiameterMm(stabilized);
-        setLiveCircumferenceMm(stabilized * Math.PI);
-        setRawCoords(m.coordinates);
-        
+      const m = measureFromAR(landmarks, { width: vw, height: vh });
+      diametersWindow.push(m.diameterMm);
+      const stabilized = stabilizeMeasurements(diametersWindow, 0.1, 10);
+      setLiveDiameterMm(stabilized);
+      setLiveCircumferenceMm(stabilized * Math.PI);
+      setRawCoords(m.coordinates);
+
     } else {
-        setIsHandDetected(false);
-        setRingPosition(null);
+      setIsHandDetected(false);
+      setRingPosition(null);
     }
   }, []);
-  
+
   useEffect(() => {
     if (typeof window.Hands === 'undefined' || typeof window.Camera === 'undefined') {
-        setError("AI libraries could not be loaded. Please check your connection and try again.");
-        return;
+      setError("AI libraries could not be loaded. Please check your connection and try again.");
+      return;
     }
     const hands = new window.Hands({
-        locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+      locateFile: (file: string) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
     });
     hands.setOptions({
-        maxNumHands: 1,
-        modelComplexity: 1,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5
+      maxNumHands: 1,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
     });
     hands.onResults(onResults);
     handsRef.current = hands;
 
     let camera: any = null;
     if (videoRef.current) {
-        camera = new window.Camera(videoRef.current, {
-            onFrame: async () => {
-                if(videoRef.current) {
-                    await hands.send({ image: videoRef.current });
-                }
-            },
-            width: 1280,
-            height: 720,
-            facingMode: 'user'
-        });
-    camera.start().catch((err: Error) => {
+      camera = new window.Camera(videoRef.current, {
+        onFrame: async () => {
+          if (videoRef.current) {
+            await hands.send({ image: videoRef.current });
+          }
+        },
+        width: 1280,
+        height: 720,
+        facingMode: 'user'
+      });
+      camera.start().catch((err: Error) => {
         console.error("Camera start error:", err);
         setError("Could not access camera. Please check permissions.");
-    });
+      });
 
-    return () => {
+      return () => {
         if (camera) {
           camera.stop();
         }
         hands.close();
-    };
-  }
+      };
+    }
   }, [onResults]);
 
   useEffect(() => {
@@ -197,10 +202,10 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
           if (document.hidden) {
             videoRef.current.pause();
           } else {
-            videoRef.current.play().catch(() => {});
+            videoRef.current.play().catch(() => { });
           }
         }
-      } catch {}
+      } catch { }
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
     return () => { document.removeEventListener('visibilitychange', onVisibilityChange); };
@@ -234,17 +239,17 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
 
   const sortedRings = useMemo(() => {
     return [...rings].sort((a, b) => {
-        const aIsFav = favoriteRings.includes(a.id);
-        const bIsFav = favoriteRings.includes(b.id);
-        if (aIsFav && !bIsFav) return -1;
-        if (!aIsFav && bIsFav) return 1;
-        return 0;
+      const aIsFav = favoriteRings.includes(a.id);
+      const bIsFav = favoriteRings.includes(b.id);
+      if (aIsFav && !bIsFav) return -1;
+      if (!aIsFav && bIsFav) return 1;
+      return 0;
     });
   }, [favoriteRings]);
 
   const handleRingSelect = useCallback((ring: Ring) => {
     setSelectedRing(ring);
-    
+
     const settings = savedSettings[ring.id];
     if (settings) {
       setPositionOffset(settings.positionOffset);
@@ -255,7 +260,7 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
       setRotation(0);
       setZoom(1);
     }
-    
+
     const element = document.getElementById(`ring-item-${ring.id}`);
     element?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     // Attempt to detect layered assets
@@ -282,7 +287,7 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
     };
     mainImg.src = mainUrl;
   }, [savedSettings]);
-  
+
   const handleDragStart = useCallback((clientY: number) => {
     setIsDragging(true);
     setTouchStartY(clientY);
@@ -303,12 +308,12 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
     setTouchDeltaY(0);
     setTouchStartY(0);
   }, [isDragging, touchDeltaY, onBack]);
-  
+
   const AVG_DIAMETER_MM = 17.3;
   const BASE_VISUAL_SIZE_PX = 80;
   const heuristicScale = result.ringSize.diameter_mm / AVG_DIAMETER_MM;
   const fallbackRingSize = BASE_VISUAL_SIZE_PX * heuristicScale;
-  
+
   const baseRingSize = dynamicRingSize ?? fallbackRingSize;
   const finalRingSize = baseRingSize * zoom;
 
@@ -421,12 +426,12 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
     ringImage.onload = () => {
       const finalX = ringPosition.x + positionOffset.x;
       const finalY = ringPosition.y + positionOffset.y;
-      
+
       ctx.translate(finalX, finalY);
       ctx.rotate(rotation * Math.PI / 180);
       ctx.drawImage(ringImage, -finalRingSize / 2, -finalRingSize / 2, finalRingSize, finalRingSize);
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      
+
       setIsFlashing(true);
       setTimeout(() => setIsFlashing(false), 300);
 
@@ -435,7 +440,7 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
       link.href = canvas.toDataURL('image/png');
       link.click();
     };
-    
+
     ringImage.onerror = () => {
       alert("Could not load ring image for screenshot. Please try again.");
     };
@@ -484,6 +489,15 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
     );
   }
 
+  // Get current material type from selected ring description or name (heuristic)
+  const getMaterialType = (ring: Ring): 'gold' | 'silver' | 'platinum' | 'roseGold' => {
+    const lower = ring.description.toLowerCase() + ring.name.toLowerCase();
+    if (lower.includes('rose')) return 'roseGold';
+    if (lower.includes('gold')) return 'gold';
+    if (lower.includes('platinum') || lower.includes('silver') || lower.includes('white')) return 'platinum';
+    return 'silver'; // default
+  };
+
   return (
     <div className="w-full h-screen bg-midnight-900 relative flex items-center justify-center animate-[fadeInUp_0.5s_ease-out] overflow-hidden">
       {selectedBackground && (
@@ -491,8 +505,18 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
       )}
       <video ref={videoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover scale-x-[-1]"></video>
       <canvas ref={screenshotCanvasRef} className="hidden"></canvas>
+
+      {/* 3D AR Layer */}
+      <ThreeARTryOn
+        landmarks={isHandDetected && resultRef.current ? (handsRef.current as any)?.lastLandmarks : null}
+        ringSizeMm={result.ringSize.diameter_mm}
+        materialType={getMaterialType(selectedRing)}
+        videoWidth={videoRef.current?.clientWidth || 1}
+        videoHeight={videoRef.current?.clientHeight || 1}
+      />
+
       {isFlashing && <div className="absolute inset-0 bg-white/80 z-50 animate-fadeOut pointer-events-none"></div>}
-      
+
       {liveDiameterMm && (
         <div className="absolute top-12 left-1/2 -translate-x-1/2 z-20 bg-black/50 text-silver-100 px-3 py-2 rounded-lg font-mono text-sm animate-fadeIn">
           {`Live Diameter: ${liveDiameterMm.toFixed(1)} mm`}
@@ -504,13 +528,14 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
       </div>
 
       {!isHandDetected && (
-         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/10 p-6 rounded-2xl text-white text-center pointer-events-none z-10 backdrop-blur-2xl border border-white/20 shadow-2xl">
-            <p className="font-semibold text-lg">Show your hand to the camera</p>
-            <p className="text-sm opacity-80 mt-1">We will auto-fit and align your ring.</p>
-         </div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/10 p-6 rounded-2xl text-white text-center pointer-events-none z-10 backdrop-blur-2xl border border-white/20 shadow-2xl">
+          <p className="font-semibold text-lg">Show your hand to the camera</p>
+          <p className="text-sm opacity-80 mt-1">We will auto-fit and align your ring.</p>
+        </div>
       )}
-      
-      {selectedRing && ringPosition && (
+
+      {/* 2D Overlay hidden for now as we use 3D */}
+      {/* {selectedRing && ringPosition && (
         <div 
           className="absolute pointer-events-none flex items-center justify-center transition-all duration-100 ease-linear"
           style={{ 
@@ -523,8 +548,8 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
         >
             <img src={compositeUrl || ringImageUrl || selectedRing.image} alt={`${selectedRing.name}`} className="absolute inset-0 w-full h-full object-contain drop-shadow-2xl" />
         </div>
-      )}
-      
+      )} */}
+
       <div className="absolute top-5 right-5 z-20 flex flex-col gap-3">
         <button onClick={onBack} className="w-12 h-12 rounded-full bg-midnight-400/60 backdrop-blur-xl border border-platinum-300/20 flex items-center justify-center text-silver-300 transition-all duration-300 hover:border-platinum-300/40 hover:bg-midnight-400/80 hover:scale-110 active:scale-95" aria-label="Close AR view">
           <CloseIcon className="w-6 h-6" />
@@ -536,70 +561,70 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
 
       {showAdjustments && (
         <div className="absolute bottom-40 left-1/2 -translate-x-1/2 w-full max-w-sm mx-auto bg-midnight-600/90 backdrop-blur-xl rounded-2xl p-4 space-y-4 z-20 border border-white/10 animate-[fadeInUp_0.3s_ease-out]">
-            <div className="space-y-4">
-                <div>
-                    <label className="block text-center text-silver-300 text-xs font-medium uppercase tracking-wider mb-2">Position</label>
-                    <div className="grid grid-cols-3 gap-2 items-center justify-items-center w-36 mx-auto text-silver-200">
-                        <div></div>
-                        <button onClick={() => setPositionOffset(p => ({...p, y: p.y - 2}))} className="p-2 bg-midnight-500/50 rounded-md hover:bg-midnight-500 transition-colors" aria-label="Nudge Up"><ArrowUpIcon className="w-5 h-5"/></button>
-                        <div></div>
-                        <button onClick={() => setPositionOffset(p => ({...p, x: p.x - 2}))} className="p-2 bg-midnight-500/50 rounded-md hover:bg-midnight-500 transition-colors" aria-label="Nudge Left"><ArrowLeftIcon className="w-5 h-5"/></button>
-                        <button onClick={resetPosition} className="p-2 bg-midnight-500/50 rounded-md hover:bg-midnight-500 transition-colors" aria-label="Reset Position"><RefreshCwIcon className="w-5 h-5"/></button>
-                        <button onClick={() => setPositionOffset(p => ({...p, x: p.x + 2}))} className="p-2 bg-midnight-500/50 rounded-md hover:bg-midnight-500 transition-colors" aria-label="Nudge Right"><ArrowRightIcon className="w-5 h-5"/></button>
-                        <div></div>
-                        <button onClick={() => setPositionOffset(p => ({...p, y: p.y + 2}))} className="p-2 bg-midnight-500/50 rounded-md hover:bg-midnight-500 transition-colors" aria-label="Nudge Down"><ArrowDownIcon className="w-5 h-5"/></button>
-                        <div></div>
-                    </div>
-                </div>
-                <div>
-                    <label className="block text-center text-silver-300 text-xs font-medium uppercase tracking-wider mb-2">Rotation</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                          type="range"
-                          min="-45"
-                          max="45"
-                          step="1"
-                          value={rotation}
-                          onChange={(e) => setRotation(parseInt(e.target.value, 10))}
-                          className="w-full h-2 bg-midnight-400 rounded-lg appearance-none cursor-pointer range-lg accent-bronze-400"
-                      />
-                      <button onClick={resetRotation} className="p-2 bg-midnight-500/50 rounded-md hover:bg-midnight-500 transition-colors" aria-label="Reset Rotation"><RefreshCwIcon className="w-5 h-5"/></button>
-                    </div>
-                </div>
-                <div>
-                    <label className="block text-center text-silver-300 text-xs font-medium uppercase tracking-wider mb-2">Adjust Scale (Zoom)</label>
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="range"
-                            min="0.60"
-                            max="1.60"
-                            step="0.01"
-                            value={zoom}
-                            onChange={(e) => setZoom(parseFloat(e.target.value))}
-                            className="w-full h-2 bg-midnight-400 rounded-lg appearance-none cursor-pointer range-lg accent-bronze-400"
-                        />
-                        <button onClick={resetZoom} className="p-2 bg-midnight-500/50 rounded-md hover:bg-midnight-500 transition-colors" aria-label="Reset Scale"><RefreshCwIcon className="w-5 h-5"/></button>
-                    </div>
-                </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-center text-silver-300 text-xs font-medium uppercase tracking-wider mb-2">Position</label>
+              <div className="grid grid-cols-3 gap-2 items-center justify-items-center w-36 mx-auto text-silver-200">
+                <div></div>
+                <button onClick={() => setPositionOffset(p => ({ ...p, y: p.y - 2 }))} className="p-2 bg-midnight-500/50 rounded-md hover:bg-midnight-500 transition-colors" aria-label="Nudge Up"><ArrowUpIcon className="w-5 h-5" /></button>
+                <div></div>
+                <button onClick={() => setPositionOffset(p => ({ ...p, x: p.x - 2 }))} className="p-2 bg-midnight-500/50 rounded-md hover:bg-midnight-500 transition-colors" aria-label="Nudge Left"><ArrowLeftIcon className="w-5 h-5" /></button>
+                <button onClick={resetPosition} className="p-2 bg-midnight-500/50 rounded-md hover:bg-midnight-500 transition-colors" aria-label="Reset Position"><RefreshCwIcon className="w-5 h-5" /></button>
+                <button onClick={() => setPositionOffset(p => ({ ...p, x: p.x + 2 }))} className="p-2 bg-midnight-500/50 rounded-md hover:bg-midnight-500 transition-colors" aria-label="Nudge Right"><ArrowRightIcon className="w-5 h-5" /></button>
+                <div></div>
+                <button onClick={() => setPositionOffset(p => ({ ...p, y: p.y + 2 }))} className="p-2 bg-midnight-500/50 rounded-md hover:bg-midnight-500 transition-colors" aria-label="Nudge Down"><ArrowDownIcon className="w-5 h-5" /></button>
+                <div></div>
+              </div>
             </div>
-            <div className="flex items-center gap-2 pt-4 border-t border-platinum-300/10">
-                <Button onClick={handleSaveSettings} variant="secondary" className="w-full !py-2 text-sm">
-                  {saveStatus === 'saving' ? 'Saved!' : <><SaveIcon className="w-4 h-4 mr-2"/> Save Fit</>}
-                </Button>
-                {savedSettings[selectedRing.id] && (
-                  <Button onClick={handleClearSettings} variant="ghost" className="w-full !py-2 text-sm !text-error/80 hover:!text-error hover:!bg-error/10">
-                    <TrashIcon className="w-4 h-4 mr-2"/> Clear Saved Fit
-                  </Button>
-                )}
+            <div>
+              <label className="block text-center text-silver-300 text-xs font-medium uppercase tracking-wider mb-2">Rotation</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="-45"
+                  max="45"
+                  step="1"
+                  value={rotation}
+                  onChange={(e) => setRotation(parseInt(e.target.value, 10))}
+                  className="w-full h-2 bg-midnight-400 rounded-lg appearance-none cursor-pointer range-lg accent-bronze-400"
+                />
+                <button onClick={resetRotation} className="p-2 bg-midnight-500/50 rounded-md hover:bg-midnight-500 transition-colors" aria-label="Reset Rotation"><RefreshCwIcon className="w-5 h-5" /></button>
+              </div>
             </div>
+            <div>
+              <label className="block text-center text-silver-300 text-xs font-medium uppercase tracking-wider mb-2">Adjust Scale (Zoom)</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min="0.60"
+                  max="1.60"
+                  step="0.01"
+                  value={zoom}
+                  onChange={(e) => setZoom(parseFloat(e.target.value))}
+                  className="w-full h-2 bg-midnight-400 rounded-lg appearance-none cursor-pointer range-lg accent-bronze-400"
+                />
+                <button onClick={resetZoom} className="p-2 bg-midnight-500/50 rounded-md hover:bg-midnight-500 transition-colors" aria-label="Reset Scale"><RefreshCwIcon className="w-5 h-5" /></button>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 pt-4 border-t border-platinum-300/10">
+            <Button onClick={handleSaveSettings} variant="secondary" className="w-full !py-2 text-sm">
+              {saveStatus === 'saving' ? 'Saved!' : <><SaveIcon className="w-4 h-4 mr-2" /> Save Fit</>}
+            </Button>
+            {savedSettings[selectedRing.id] && (
+              <Button onClick={handleClearSettings} variant="ghost" className="w-full !py-2 text-sm !text-error/80 hover:!text-error hover:!bg-error/10">
+                <TrashIcon className="w-4 h-4 mr-2" /> Clear Saved Fit
+              </Button>
+            )}
+          </div>
         </div>
       )}
 
       <div
         className="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-4 flex flex-col gap-4 cursor-grab active:cursor-grabbing"
         style={{
-            transform: `translateY(${touchDeltaY}px)`,
-            transition: isDragging ? 'none' : 'transform 0.3s ease-out'
+          transform: `translateY(${touchDeltaY}px)`,
+          transition: isDragging ? 'none' : 'transform 0.3s ease-out'
         }}
         onTouchStart={(e) => handleDragStart(e.touches[0].clientY)}
         onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}
@@ -610,8 +635,8 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
         onMouseLeave={handleDragEnd}
       >
         <div className="w-full flex justify-center gap-3">
-          <button 
-            onClick={() => setShowAdjustments(s => !s)} 
+          <button
+            onClick={() => setShowAdjustments(s => !s)}
             className="bg-midnight-600/80 backdrop-blur-lg rounded-xl p-3 text-silver-200 font-medium flex items-center justify-center border border-platinum-300/10 hover:border-platinum-300/30 transition-colors"
           >
             <SlidersIcon className="w-5 h-5 mr-2" />
@@ -628,7 +653,7 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
           </select>
         </div>
 
-        <div ref={carouselRef} className="w-full overflow-x-auto pb-4 pt-2 px-4 snap-x snap-mandatory flex gap-3 no-scrollbar" style={{WebkitOverflowScrolling: 'touch'}}>
+        <div ref={carouselRef} className="w-full overflow-x-auto pb-4 pt-2 px-4 snap-x snap-mandatory flex gap-3 no-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
           {sortedRings.map(ring => (
             <div
               key={ring.id}
@@ -648,7 +673,7 @@ export const ARTryOn = ({ result, onBack }: ARTryOnProps) => {
                 className={`absolute top-0 right-0 m-1 p-1 rounded-full transition-colors ${favoriteRings.includes(ring.id) ? 'text-error' : 'text-silver-400 hover:text-white'}`}
                 aria-label={favoriteRings.includes(ring.id) ? 'Remove from favorites' : 'Add to favorites'}
               >
-                <HeartIcon filled={favoriteRings.includes(ring.id)} className="w-5 h-5"/>
+                <HeartIcon filled={favoriteRings.includes(ring.id)} className="w-5 h-5" />
               </button>
             </div>
           ))}
