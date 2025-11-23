@@ -329,7 +329,7 @@ export const App = () => {
   const isFullScreenPage = ['camera-measure', 'processing', 'ar-try-on', 'ruler-calibration'].includes(appState);
 
   // Pages that have their own built-in back buttons (don't show FloatingBackButton)
-  const pagesWithOwnBackButton = ['method-selection', 'printable-sizer', 'manual-entry', 'existing-ring', 'multi-finger-sizing'];
+  const pagesWithOwnBackButton = ['method-selection', 'printable-sizer', 'manual-entry', 'existing-ring', 'multi-finger-sizing', 'photo-upload', 'camera-measure'];
 
   const backState = getBackState(appState);
   const showBackButton = !!backState && !isFullScreenPage && !pagesWithOwnBackButton.includes(appState);

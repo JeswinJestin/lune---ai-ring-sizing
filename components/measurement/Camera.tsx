@@ -136,13 +136,43 @@ export const Camera = ({ onCapture, onBack, onCancel, method, isProcessing, proc
 
     // AI Scan hand tracking effect
     useEffect(() => {
-        if (status !== 'live' || !isAiScanMethod || typeof window.Hands === 'undefined' || !overlayCanvasRef.current || !videoRef.current) return;
+        // Enhanced logging for debugging
+        console.log('MediaPipe Effect Check:', {
+            status,
+            isAiScanMethod,
+            hasHands: typeof window.Hands !== 'undefined',
+            hasCanvas: !!overlayCanvasRef.current,
+            hasVideo: !!videoRef.current
+        });
+
+        if (status !== 'live' || !isAiScanMethod) {
+            console.log('Skipping MediaPipe: status or method check failed');
+            return;
+        }
+
+        if (typeof window.Hands === 'undefined') {
+            console.error('MediaPipe Hands library not loaded! Check index.html script tags.');
+            return;
+        }
+
+        if (!overlayCanvasRef.current || !videoRef.current) {
+            console.warn('Canvas or video ref not ready');
+            return;
+        }
 
         let isMounted = true;
         const video = videoRef.current;
         const canvas = overlayCanvasRef.current;
         const ctx = canvas.getContext('2d');
-        if (!ctx) return;
+        if (!ctx) {
+            console.error('Failed to get 2D context from canvas');
+            return;
+        }
+
+        // Ensure canvas is properly sized
+        canvas.width = video.clientWidth || 640;
+        canvas.height = video.clientHeight || 480;
+        console.log('Canvas sized:', canvas.width, 'x', canvas.height);
 
         const onResults = (results: any) => {
             if (!isMounted) return;
@@ -212,11 +242,18 @@ export const Camera = ({ onCapture, onBack, onCancel, method, isProcessing, proc
 
                     // ALWAYS draw standard skeleton (this should always show)
                     if (window.drawConnectors && window.drawLandmarks) {
-                        console.log('Drawing skeleton...');
-                        window.drawConnectors(ctx, landmarks, window.HAND_CONNECTIONS, { color: '#C9A668', lineWidth: 3 });
-                        window.drawLandmarks(ctx, landmarks, { color: '#E8E8EA', lineWidth: 2, radius: 4 });
+                        console.log('✅ Drawing hand skeleton with', landmarks.length, 'landmarks');
+                        window.drawConnectors(ctx, landmarks, window.HAND_CONNECTIONS, { color: '#C9A668', lineWidth: 4 });
+                        window.drawLandmarks(ctx, landmarks, { color: '#FFFFFF', lineWidth: 2, radius: 6 });
                     } else {
-                        console.error('MediaPipe drawing functions not available!');
+                        console.error('❌ MediaPipe drawing functions not available!');
+                        // Fallback: draw simple circles for landmarks
+                        ctx.fillStyle = '#C9A668';
+                        landmarks.forEach((landmark: any) => {
+                            ctx.beginPath();
+                            ctx.arc(landmark.x * canvas.width, landmark.y * canvas.height, 5, 0, 2 * Math.PI);
+                            ctx.fill();
+                        });
                     }
 
                     // Draw enhanced finger tracking - BIGGER and MORE VISIBLE
