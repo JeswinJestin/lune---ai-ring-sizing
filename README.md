@@ -20,8 +20,7 @@ An elegant, glass‑morphism React + Vite app for accurate ring sizing and immer
     - diameter, circumference, ring size standards, actions
   - AR Try‑On
     - live tracking, position/rotation/zoom controls, band+gem composite
-
-  Note: Add screenshots to `docs/images/` and reference them here.
+  
 </details>
 
 <img width="1821" height="960" alt="Image" src="https://github.com/user-attachments/assets/59e4612f-2eba-4f98-b410-7deb487367f7" />
