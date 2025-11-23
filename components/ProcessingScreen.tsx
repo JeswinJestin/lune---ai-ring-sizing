@@ -33,12 +33,27 @@ const analysisSteps: Record<SizingMethod, string[]> = {
     "Estimating finger size..."
   ],
   'printable': [], // Not applicable
+  'ruler': [
+    "Calibrating screen...",
+    "Measuring scale...",
+    "Calculating pixels per mm..."
+  ],
+  'upload': [
+    "Analyzing image...",
+    "Detecting reference object...",
+    "Measuring finger width..."
+  ],
+  'manual': [
+    "Verifying input...",
+    "Converting units...",
+    "Finalizing..."
+  ]
 };
 
 export const ProcessingScreen = ({ method }: ProcessingScreenProps) => {
   const [stepIndex, setStepIndex] = useState(0);
   const steps = method ? analysisSteps[method] : ["Processing your measurement..."];
-  
+
   useEffect(() => {
     if (steps.length <= 1) return;
 

@@ -20,6 +20,13 @@
         "./*"
       ]
     },
+    "types": [
+      "node",
+      "react",
+      "react-dom",
+      "three",
+      "@react-three/fiber"
+    ],
     "allowImportingTsExtensions": true,
     "noEmit": true
   }

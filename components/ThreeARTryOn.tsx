@@ -160,16 +160,12 @@ export const ThreeARTryOn = (props: ThreeARTryOnProps) => {
             <Canvas
                 camera={{ position: [0, 0, 1000], fov: 50 }} // Orthographic-ish perspective
                 gl={{ alpha: true, antialias: true, preserveDrawingBuffer: true }}
-                style={{ width: '100%', height: '100%' }}
                 onCreated={({ gl }) => {
                     gl.domElement.width = props.videoWidth || 640;
                     gl.domElement.height = props.videoHeight || 480;
                     console.log("Canvas created with size:", gl.domElement.width, gl.domElement.height);
                 }}
-                onError={(e) => {
-                    console.error("Canvas error:", e);
-                    setHasError(true);
-                }}
+
             >
                 {/* Lights */}
                 <ambientLight intensity={0.7} />
@@ -181,6 +177,6 @@ export const ThreeARTryOn = (props: ThreeARTryOnProps) => {
 
                 <RingModel {...props} />
             </Canvas>
-        </div>
+        </div >
     );
 };
