@@ -141,12 +141,35 @@ const RingModel = ({ landmarks, ringSizeMm, materialType, videoWidth, videoHeigh
 };
 
 export const ThreeARTryOn = (props: ThreeARTryOnProps) => {
+    const [hasError, setHasError] = React.useState(false);
+
+    useEffect(() => {
+        if (!props.landmarks) {
+            console.log("ThreeARTryOn: No landmarks detected");
+        } else {
+            console.log("ThreeARTryOn: Landmarks detected", props.landmarks.length);
+        }
+    }, [props.landmarks]);
+
+    if (hasError) {
+        return <div className="absolute inset-0 flex items-center justify-center text-red-500">AR Error</div>;
+    }
+
     return (
-        <div className="absolute inset-0 z-10 pointer-events-none">
+        <div className="absolute inset-0 z-10 pointer-events-none" style={{ width: '100%', height: '100%' }}>
             <Canvas
                 camera={{ position: [0, 0, 1000], fov: 50 }} // Orthographic-ish perspective
-                gl={{ alpha: true, antialias: true }}
+                gl={{ alpha: true, antialias: true, preserveDrawingBuffer: true }}
                 style={{ width: '100%', height: '100%' }}
+                onCreated={({ gl }) => {
+                    gl.domElement.width = props.videoWidth || 640;
+                    gl.domElement.height = props.videoHeight || 480;
+                    console.log("Canvas created with size:", gl.domElement.width, gl.domElement.height);
+                }}
+                onError={(e) => {
+                    console.error("Canvas error:", e);
+                    setHasError(true);
+                }}
             >
                 {/* Lights */}
                 <ambientLight intensity={0.7} />

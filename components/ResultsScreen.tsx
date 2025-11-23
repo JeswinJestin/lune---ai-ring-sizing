@@ -45,7 +45,7 @@ export const ResultsScreen = ({ result, onMeasureAgain, onTryOn, onViewRecommend
 
   // Count up animation for the numeric part of US size (if it's a number)
   useEffect(() => {
-    const targetSize = parseFloat(ringSize.us);
+    const targetSize = parseFloat(String(ringSize.us));
     if (isNaN(targetSize)) {
       // If not a number (e.g. "S", "M"), just set it
       return;
@@ -95,7 +95,7 @@ export const ResultsScreen = ({ result, onMeasureAgain, onTryOn, onViewRecommend
     }
   };
 
-  const displayUSSize = isNaN(parseFloat(ringSize.us)) ? ringSize.us : displayedSize.toFixed(1);
+  const displayUSSize = isNaN(parseFloat(String(ringSize.us))) ? ringSize.us : displayedSize.toFixed(1);
 
   return (
     <div className="w-full max-w-3xl mx-auto p-4 sm:p-6 text-center animate-[fadeInUp_0.5s_ease-out]">

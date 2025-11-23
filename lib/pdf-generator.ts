@@ -6,9 +6,9 @@ export const generateMeasurementReport = (result: MeasurementResult): void => {
     const doc = new jsPDF();
 
     // Colors
-    const bronze = [184, 134, 11];
-    const silver = [192, 192, 192];
-    const midnight = [15, 23, 42];
+    const bronze: [number, number, number] = [184, 134, 11];
+    const silver: [number, number, number] = [192, 192, 192];
+    const midnight: [number, number, number] = [15, 23, 42];
 
     // Header - LUNE Branding
     doc.setFillColor(...bronze);
