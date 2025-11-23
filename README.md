@@ -23,13 +23,13 @@ An elegant, glass‑morphism React + Vite app for accurate ring sizing and immer
   
 </details>
 
-<img width="1819" height="958" alt="Image" src="https://github.com/user-attachments/assets/49d3d501-89ed-4fd3-aabc-c51921ddbec1" />
+<img width="1821" height="960" alt="Image" src="https://github.com/user-attachments/assets/59e4612f-2eba-4f98-b410-7deb487367f7" />
 
-<img width="1820" height="956" alt="Image" src="https://github.com/user-attachments/assets/1eb8b20a-4283-443d-949d-7fc98f848898" />
+<img width="1819" height="958" alt="Image" src="https://github.com/user-attachments/assets/49d3d501-89ed-4fd3-aabc-c51921ddbec1" />
 
 <img width="1821" height="954" alt="Image" src="https://github.com/user-attachments/assets/a9ac6bf7-3473-43c6-aac0-d9317c2275e8" />
 
-<img width="1821" height="960" alt="Image" src="https://github.com/user-attachments/assets/59e4612f-2eba-4f98-b410-7deb487367f7" />
+<img width="1820" height="956" alt="Image" src="https://github.com/user-attachments/assets/1eb8b20a-4283-443d-949d-7fc98f848898" />
 
 ## Features
 - Multi‑method sizing: camera capture, existing ring sizer, printable sizer
